@@ -1,0 +1,197 @@
+:root {
+    --short: 8vw;
+    --long: 16vw;
+    --xlong: 32vw;
+  }
+html{
+    height: 100%;
+    width: 100%
+}
+
+body{
+    /*background-color: red;*/
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+button{
+    background-color: lightgray;
+    border-style: solid;
+    border-color: darkgray;
+    position: absolute;
+}
+
+button.left{
+    transform: translateY(-50%);
+    top: 50%;
+    left: 0;
+    height: var(--short);
+    width: var(--long);
+    border-radius: 100px 10px 10px 100px;
+}
+
+button.right{
+    transform: translateY(-50%);
+    top: 50%;
+    right: 0;
+    height: var(--short);
+    width: var(--long);
+    border-radius: 10px 100px 100px 10px;
+}
+
+button.up{
+    transform: translateX(-50%);
+    top: 0;
+    left: 50%;
+    height: var(--long);
+    width: var(--short);
+    border-radius: 100px 100px 10px 10px;
+}
+
+button.down{
+    transform: translateX(-50%);
+    bottom: 0%;
+    left: 50%;
+    height: var(--long);
+    width: var(--short);
+    border-radius: 10px 10px 100px 100px;
+}
+
+button.select{
+    transform: translateX(-50%) translateY(-50%);
+    height: var(--short);
+    width: var(--short);
+    top: 50%;
+    left: 50%;
+    border-radius: 10px;
+}
+
+button.power{
+    height: var(--short);
+    width: var(--short);
+    top: 5%;
+    left: 5%;
+    border-radius: 1000px;
+}
+
+button.mute{
+    height: var(--short);
+    width: var(--short);
+    top: 5%;
+    right: 5%;
+    border-radius: 1000px;
+}
+
+div.command{
+    transform: translateX(-50%);
+    left:50%;
+    width: 50%;
+    height: 100%;
+    background-color: lightgray;
+    position: relative;
+}
+
+div.commandContainer{
+    display: block;
+    height: 60%;
+    width: 100%;
+    background-color: lightgray;
+    position: relative;
+}
+
+div.chvolcontainer{
+    height: 20%;
+    width: 100%;
+    position: relative;
+    
+}
+
+div.channel{
+    left: 30%;
+    position: absolute;
+    width: var(--short);
+    border: solid black 2px;
+    height: 100%;
+}
+
+div.vol{
+    position: absolute;
+    right: 30%;
+    width: var(--short);
+    border: solid black 2px;
+    height: 100%;
+}
+
+button.chup{
+    top: 0;
+    border-radius: 200px;
+    width:100%;
+    height: 50%;
+}
+
+button.chdown{
+    bottom: 0;
+    border-radius: 200px;
+    width:100%;
+    height: 50%;
+}
+
+button.back{
+    border-radius: 200px;
+    width: var(--short);
+    height: var(--short);
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+
+button.volup{
+    top: 0;
+    border-radius: 200px;
+    width:100%;
+    height: 50%;
+}
+
+button.voldown{
+    bottom: 0;
+    border-radius: 200px;
+    width:100%;
+    height: 50%;
+}
+
+div.serviceContainer{
+    height: 20%;
+    position: relative;
+}
+
+button.service{
+    position: absolute;
+    height: 100%;
+    width: 25%;
+}
+
+button.netflix{
+    background-color: red;
+    left:0;
+}
+
+button.hulu{
+    background-color: green;
+    left:25%;
+}
+
+button.disney{
+    background-color: blue;
+    left:50%;
+}
+
+button.plex{
+    background-color: yellow;
+    left:75%;
+}
+
+div{
+    background-color: lightgray;
+}
