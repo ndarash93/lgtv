@@ -113,6 +113,9 @@ module.exports = function makeLGTV(WebSocket, emitter) {
     hulu: function(){
       request('ssap://system.launcher/launch', {id: 'hulu'});
     },
+    disney: function(){
+      request('ssap://system.launcher/launch', {id: 'disneyplus'});
+    },
     enter: function(){
       request('ssap://com.webos.service.ime/sendEnterKey');
     },

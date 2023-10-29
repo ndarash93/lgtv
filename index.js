@@ -68,7 +68,7 @@ lgtvEmitter.on('registered', function(){
 
 app.get('/', (req, res) => {
     res.render('remote.ejs', {
-      test: 'bitch'
+      //test: 'bitch'
     });
   });
   

@@ -9,5 +9,5 @@ const lgtv = require('./lgtv')(WebSocket);
 //magic(udp)
 
 setTimeout(function(){
-    lgtv.control.setVolume(12);
+    lgtv.control.home();
 },500);
