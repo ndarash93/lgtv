@@ -1,7 +1,7 @@
 :root {
-    --veryshort: 6vh;
-    --short: 8vh;
-    --long: 16vh;
+    --veryshort: 8vh;
+    --short: 10vh;
+    --long: 36vh;
     --xlong: 32vh;
   }
   html {
@@ -17,7 +17,7 @@
     width: 100%;
     height: 100%;
     position: relative;
-    background-color: lightgrey;
+    background-color: white;
   }
   
   div.remote_container {
@@ -26,15 +26,18 @@
     transform: translateX(calc(50vw - 50%));
     max-width: 100vw;
     border: solid gray 2px;
+    background-color: lightgray;
     border-radius: 50px;
     margin: 0;
     padding: 0;
+    position: relative;
   }
   
   div.arrow_container {
-    width: 50%;
-    height: 50%;
-    transform: translate(50%, 50%);
+    width: 40vh;
+    height: 40vh;
+    transform: translate(50%, 25%);
+    background-color: pink;
   }
 
   button {
@@ -48,8 +51,8 @@
     transform: translateY(-50%);
     top: 50%;
     left: 0;
-    height: 25%;
-    width: 50%;
+    height: var(--short);
+    width: var(--short);
     border-radius: 100px 10px 10px 100px;
   }
   
@@ -58,7 +61,7 @@
     top: 50%;
     right: 0;
     height: var(--short);
-    width: var(--long);
+    width: var(--short);
     border-radius: 10px 100px 100px 10px;
   }
   
@@ -66,7 +69,7 @@
     transform: translateX(-50%);
     top: 0;
     left: 50%;
-    height: var(--long);
+    height: var(--short);
     width: var(--short);
     border-radius: 100px 100px 10px 10px;
   }
@@ -75,8 +78,8 @@
     transform: translateX(-50%);
     bottom: 0%;
     left: 50%;
-    height: 50%;
-    width: 25%;
+    height: var(--short);
+    width: var(--short);
     border-radius: 10px 10px 100px 100px;
   }
   
@@ -128,7 +131,7 @@
   }
   
   div.channel {
-    left: 30%;
+    left: 15%;
     position: absolute;
     width: var(--short);
     border: solid black 2px;
@@ -137,7 +140,7 @@
   
   div.vol {
     position: absolute;
-    right: 30%;
+    right: 15%;
     width: var(--short);
     border: solid black 2px;
     height: 100%;
@@ -159,8 +162,8 @@
   
   button.back {
     border-radius: 200px;
-    width: var(--veryshort);
-    height: var(--veryshort);
+    width: var(--short);
+    height: var(--short);
     left: 50%;
     top: 25%;
     transform: translateX(-50%) translateY(-50%);
@@ -168,8 +171,8 @@
   
   button.home {
     border-radius: 200px;
-    width: var(--veryshort);
-    height: var(--veryshort);
+    width: var(--short);
+    height: var(--short);
     left: 50%;
     top: 75%;
     transform: translateX(-50%) translateY(-50%);
