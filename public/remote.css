@@ -11,7 +11,9 @@
   
   body {
     /*background-color: red;*/
+    box-sizing: border-box;
     margin: 0;
+    padding: 10px;
     width: 100%;
     height: 100%;
     position: relative;
@@ -20,13 +22,21 @@
   
   div.remote_container {
     width: calc(80vh);
-    height: 100%;
+    height: calc(100%);
     transform: translateX(calc(50vw - 50%));
     max-width: 100vw;
-    border: solid black 2px;
+    border: solid gray 2px;
     border-radius: 50px;
+    margin: 0;
+    padding: 0;
   }
   
+  div.arrow_container {
+    width: 50%;
+    height: 50%;
+    transform: translate(50%, 50%);
+  }
+
   button {
     background-color: lightgray;
     border-style: solid;
@@ -38,8 +48,8 @@
     transform: translateY(-50%);
     top: 50%;
     left: 0;
-    height: var(--short);
-    width: var(--long);
+    height: 25%;
+    width: 50%;
     border-radius: 100px 10px 10px 100px;
   }
   
@@ -65,8 +75,8 @@
     transform: translateX(-50%);
     bottom: 0%;
     left: 50%;
-    height: var(--long);
-    width: var(--short);
+    height: 50%;
+    width: 25%;
     border-radius: 10px 10px 100px 100px;
   }
   
