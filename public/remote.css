@@ -34,11 +34,12 @@
   }
   
   div.arrow_container {
-    width: 40%;
-    height: 40%;
-    transform: translate(50%, 25%);
-    background-color: pink;
-    position: relative;
+    top: 25%;
+    left: 25%;
+    width: 40vh;
+    height: 40vh;
+    max-width: 50%;
+    position: absolute;
   }
 
   button {
