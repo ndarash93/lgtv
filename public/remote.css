@@ -173,8 +173,8 @@
   
   button.home {
     border-radius: 200px;
-    width: var(--short);
-    height: var(--short);
+    width: var(--veryshort);
+    height: var(--veryshort);
     left: 50%;
     top: 75%;
     transform: translateX(-50%) translateY(-50%);
@@ -201,27 +201,38 @@
   
   button.service {
     position: absolute;
-    height: 100%;
-    width: 25%;
+    height: 75%;
+    width: 20%;
+    top: 12.5%;
+    border: none;
+    border-radius: 10px;
   }
   
   button.netflix {
     background-color: red;
-    left: 0;
+    left: 25%;
+    transform: translateX(-50%);
   }
   
   button.hulu {
     background-color: green;
-    left: 25%;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   button.disney {
     background-color: blue;
-    left: 50%;
+    left: 75%;
+    transform: translateX(-50%);
   }
   
+  /*
   button.plex {
     background-color: yellow;
-    left: 75%;
+    left: 70%;
   }
-  
+  */
+
+  i {
+    font-size: 100px;
+  }
