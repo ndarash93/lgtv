@@ -136,7 +136,7 @@
     left: 15%;
     position: absolute;
     width: var(--short);
-    border: solid black 2px;
+    border: none;
     height: 100%;
   }
   
@@ -144,7 +144,7 @@
     position: absolute;
     right: 15%;
     width: var(--short);
-    border: solid black 2px;
+    border: none;
     height: 100%;
   }
   
@@ -206,6 +206,7 @@
     top: 12.5%;
     border: none;
     border-radius: 10px;
+    font-size: 200%;
   }
   
   button.netflix {
@@ -234,5 +235,6 @@
   */
 
   i {
-    font-size: 100px;
+    font-size: 200%;
+    color: black;
   }
