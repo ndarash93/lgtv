@@ -1,28 +1,34 @@
-function getStatus(){
-    fetch('/status').then(res => {
-        return res.json();
-    }).then(data => {
-        handlePower(data.status);
-    })
-}
+//const WebSocket = require('ws');
+const ws = new WebSocket('ws://192.168.0.11:8080')
 
-getStatus();
+ws.onopen = (() => {
+  console.log('Connected to WebSocket server');
+  ws.send(JSON.stringify({body:'Hello, server!'}));
+  //ws.send('Hello World!')
+});
+
+ws.onmessage = ((message) => {
+  console.log(`Received from server: ${message}`);
+});
+
+ws.onclose = (() => {
+  console.log('Disconnected from WebSocket server');
+});
+
+
+
 
 const buttons = document.querySelectorAll("button");
 buttons.forEach(button => {
     if (button.id != "power"){
         button.addEventListener('click', function(event){
-            fetch('/command',{
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({command:event.target.id})
-            }).then(res => {
-                return res.json();
-            }).then(data => {
-                handlePower(data.status);
-            })
+            try{
+                ws.send(JSON.stringify({
+                    body: {command:event.target.id}
+                }))
+            }catch(error){
+                console.log(error)
+            }
         });
     }
 })

@@ -1,7 +1,8 @@
 module.exports = function makeLGTV(WebSocket, emitter) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
-  const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`);
+  //const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
   let pairing = require('./pairing.json');
+  pairing['client-key'] = process.env.CLIENTKEY;
   let cidCount = 0;
   let isRegistered = false;
   let isOpen = false;
@@ -10,148 +11,152 @@ module.exports = function makeLGTV(WebSocket, emitter) {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
   }
 
-  socket.on('open', function() {
-    //console.log('WebSocket connection established.');
+
+  try{
+    const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
+    console.log('TV Connected')
+  }catch(e){
+    isOpen = false;
+    console.log(e);
+  }finally{
+
+  }
+
+  socket.on('open', function () {
     isOpen = true;
-    pairing['client-key'] = process.env.CLIENTKEY;
-    send('register',undefined,pairing);
+    send('register', undefined, pairing);
     emitter.emit('open');
   });
 
-  socket.on('close', function(){
-    //console.log('Socket Closed!');
+  socket.on('close', function () {
     isOpen = false;
     emitter.emit('close');
-    //console.log('socket close');
   })
 
-  socket.on('registered', function(data){
+  socket.on('registered', function (data) {
     isRegistered = true;
-    //console.log('Registered');
   });
 
-  socket.on('message', function(data){
+  socket.on('message', function (data) {
     data = JSON.parse(data);
-    if(data.type === 'registered'){
+    if (data.type === 'registered') {
       socket.emit('registered', data);
       emitter.emit('registered');
-    }else if(data.type ==='response'){
+    } else if (data.type === 'response') {
       socket.emit(data.id, data);
     }
   });
 
-  function send(type, uri, payload = {},command = '') {
+  function send(type, uri, payload = {}, command = '') {
     const json = {
       id: getCid(),
       type: type,
       uri: uri,
       payload: payload
     }
-    //console.log(json.id)
-    socket.on(json.id, function(data){
-      if (data.payload.socketPath){
+    socket.on(json.id, function (data) {
+      if (data.payload.socketPath) {
         const specialSocket = new WebSocket(data.payload.socketPath);
-        specialSocket.on('open', function(){
+        specialSocket.on('open', function () {
           specialSocket.send(`type:button\nname:${command}\n\n`)
           specialSocket.close();
         })
       }
     })
-    try{
+    try {
       socket.send(JSON.stringify(json));
-    }catch(e){
+    } catch (e) {
       throw e
     }
   }
 
-  function request(uri, payload={}){
+  function request(uri, payload = {}) {
     send('request', uri, payload);
   }
 
   function specialRequest(command) {
-    send('request','ssap://com.webos.service.networkinput/getPointerInputSocket',{},command);
+    send('request', 'ssap://com.webos.service.networkinput/getPointerInputSocket', {}, command);
   }
 
 
   const control = {
-    mute: function(){
-      request('ssap://audio/setMute', {mute: true});
+    mute: function () {
+      request('ssap://audio/setMute', { mute: true });
     },
-    unmute: function(){
-      request('ssap://audio/setMute', {mute: false});
+    unmute: function () {
+      request('ssap://audio/setMute', { mute: false });
     },
-    volumeUp: function(){
+    volumeUp: function () {
       request('ssap://audio/volumeUp');
     },
-    volumeDown: function(){
+    volumeDown: function () {
       request('ssap://audio/volumeDown');
     },
-    getVolume: function(){
+    getVolume: function () {
       request('ssap://audio/getVolume');
     },
-    setVolume: function(value){
-      request('ssap://audio/setVolume',{volume:value});
+    setVolume: function (value) {
+      request('ssap://audio/setVolume', { volume: value });
     },
-    play: function(){
+    play: function () {
       request('ssap://media.controls/play');
     },
-    pause: function(){
+    pause: function () {
       request('ssap://media.controls/pause');
     },
-    fastForward: function(){
+    fastForward: function () {
       request('ssap://media.controls/fastForward');
     },
-    rewind: function(){
+    rewind: function () {
       request('ssap://media.controls/rewind');
     },
-    netflix: function(){
-      request('ssap://system.launcher/launch', {id: 'netflix'});
+    netflix: function () {
+      request('ssap://system.launcher/launch', { id: 'netflix' });
     },
-    plex: function(){
-      request('ssap://system.launcher/launch', {id: 'plex'});
+    plex: function () {
+      request('ssap://system.launcher/launch', { id: 'plex' });
     },
-    hulu: function(){
-      request('ssap://system.launcher/launch', {id: 'hulu'});
+    hulu: function () {
+      request('ssap://system.launcher/launch', { id: 'hulu' });
     },
-    disney: function(){
-      request('ssap://system.launcher/launch', {id: 'disneyplus'});
+    disney: function () {
+      request('ssap://system.launcher/launch', { id: 'disneyplus' });
     },
-    enter: function(){
+    enter: function () {
       request('ssap://com.webos.service.ime/sendEnterKey');
     },
-    delete: function(){
+    delete: function () {
       request('ssap://com.webos.service.ime/deleteCharacters');
     },
-    turnOff: function(){
+    turnOff: function () {
       request('ssap://system/turnOff');
       socket.close();
     },
-    select: function(){
+    select: function () {
       specialRequest('ENTER');
     },
-    up: function(){
+    up: function () {
       specialRequest('UP');
     },
-    down: function(){
+    down: function () {
       specialRequest('DOWN');
     },
-    left: function(){
+    left: function () {
       specialRequest('LEFT');
     },
-    right: function(){
+    right: function () {
       specialRequest('RIGHT');
     },
-    back: function(){
+    back: function () {
       specialRequest('BACK');
     },
-    home: function(){
+    home: function () {
       specialRequest('HOME');
     },
   }
 
-  function close(){
+  function close() {
     socket.close();
-    //console.log('close1')
   }
 
   return {
