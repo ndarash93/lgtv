@@ -47,6 +47,7 @@
     border-color: darkgray;
     position: absolute;
     font-size: 1em;
+    z-index: 1;
   }
   
   button.left {
@@ -236,4 +237,5 @@
 
   i {
     color: black;
+    z-index: -1;
   }

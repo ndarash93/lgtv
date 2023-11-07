@@ -1,6 +1,6 @@
 module.exports = function makeLGTV(WebSocket, emitter) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
-  //const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
+  const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
   let pairing = require('./pairing.json');
   pairing['client-key'] = process.env.CLIENTKEY;
   let cidCount = 0;
@@ -13,7 +13,8 @@ module.exports = function makeLGTV(WebSocket, emitter) {
 
 
   try{
-    const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
+    socket
+    
     console.log('TV Connected')
   }catch(e){
     isOpen = false;
