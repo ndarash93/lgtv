@@ -3,8 +3,8 @@ const udp = require('dgram');
 require('dotenv').config();
 const express = require('express');
 const app = express();
-const makeLGTV = require('./util/lgtv');
-const magic = require('./util/magic');
+//const makeLGTV = require('./util/lgtv');
+//const magic = require('./util/magic');
 const EventEmitter = require('events');
 const exec = require('child_process').exec
 
@@ -20,8 +20,8 @@ const status = {
   isRegistered: false
 };
 //const router = require('router')(express.Router(), lgtv, magic);
-const Server = require('./util/server')(WebSocket, lgtvEmitter)
-const lgtv = require('./util/lgtv')(WebSocket, clientEmitter)
+const Server = require('./util/server')(WebSocket, clientEmitter)
+const lgtv = require('./util/lgtv')(WebSocket, lgtvEmitter)
 
 
 app.set('view-engine', 'ejs');

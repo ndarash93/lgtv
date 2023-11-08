@@ -1,6 +1,6 @@
 module.exports = function makeLGTV(WebSocket, emitter) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
-  const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`,{connectionTimeout: 2000});
+  //const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`, { connectionTimeout: 2000 });
   let pairing = require('./pairing.json');
   pairing['client-key'] = process.env.CLIENTKEY;
   let cidCount = 0;
@@ -11,42 +11,77 @@ module.exports = function makeLGTV(WebSocket, emitter) {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
   }
 
+  const connectionTimeout = 1000; // 5 seconds, for example
 
-  try{
-    socket
-    
-    console.log('TV Connected')
-  }catch(e){
-    isOpen = false;
-    console.log(e);
-  }finally{
+  // Create a Promise-based function to establish the WebSocket connection with a timeout
+  function connectWithTimeout(timeout) {
+    return new Promise((resolve, reject) => {
+      const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`);
 
+      socket.on('open', () => {
+        clearTimeout(connectionTimer); // Connection succeeded, so clear the timeout
+        resolve(socket); // Resolve the Promise with the WebSocket instance
+      });
+
+      socket.on('error', (error) => {
+        clearTimeout(connectionTimer); // Clear the timeout on error
+        socket.close(); // Close the WebSocket connection
+        reject(error); // Reject the Promise with the error
+      });
+
+      const connectionTimer = setTimeout(() => {
+        socket.close(); // Close the WebSocket connection on timeout
+        reject(new Error('WebSocket connection timed out'));
+      }, timeout);
+    });
   }
 
-  socket.on('open', function () {
-    isOpen = true;
-    send('register', undefined, pairing);
-    emitter.emit('open');
-  });
+  connectWithTimeout(connectionTimeout)
+    .then((socket) => {
+      console.log('Connected to WebSocket');
+      // You can now use the WebSocket instance for communication
+      //isOpen = true;
+      send('register', undefined, pairing);
+      emitter.emit('open');
 
-  socket.on('close', function () {
-    isOpen = false;
-    emitter.emit('close');
-  })
+      socket.on('close', function () {
+        //isOpen = false;
+        emitter.emit('close');
+      })
 
-  socket.on('registered', function (data) {
-    isRegistered = true;
-  });
+      socket.on('message', function (data) {
+        data = JSON.parse(data);
+        if (data.type === 'registered') {
+          socket.emit('registered', data);
+          emitter.emit('registered');
+        } else if (data.type === 'response') {
+          socket.emit(data.id, data);
+        }
+      });
 
-  socket.on('message', function (data) {
-    data = JSON.parse(data);
-    if (data.type === 'registered') {
-      socket.emit('registered', data);
-      emitter.emit('registered');
-    } else if (data.type === 'response') {
-      socket.emit(data.id, data);
-    }
-  });
+      emitter.on('command', function(command, payload = {}){
+        const commandJSON = JSON.stringify({
+          id: getCid(),
+          type: 'request',
+          uri: command,
+          payload: payload
+        })
+        socket.on(commandJSON.id, function (data){
+          if (data.payload.socketPath) {
+            const specialSocket = new WebSocket(data.payload.socketPath);
+            specialSocket.on('open', function () {
+              specialSocket.send(`type:button\nname:${command}\n\n`)
+              specialSocket.close();
+            })
+          }
+        })
+        socket.send(commandJSON);
+      })
+    })
+    .catch((error) => {
+      console.error('WebSocket connection error:', error.message);
+      emitter.emit('noconnect')
+    });
 
   function send(type, uri, payload = {}, command = '') {
     const json = {
