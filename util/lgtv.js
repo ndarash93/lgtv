@@ -1,4 +1,4 @@
-module.exports = function makeLGTV(WebSocket, emitter) {
+module.exports = function makeLGTV(WebSocket, clientEmitter) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
   //const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`, { connectionTimeout: 2000 });
   let pairing = require('./pairing.json');
@@ -42,28 +42,109 @@ module.exports = function makeLGTV(WebSocket, emitter) {
       // You can now use the WebSocket instance for communication
       //isOpen = true;
       send('register', undefined, pairing);
-      emitter.emit('open');
+      clientEmitter.emit('open');
 
       socket.on('close', function () {
         //isOpen = false;
-        emitter.emit('close');
+        clientEmitter.emit('close');
       })
 
       socket.on('message', function (data) {
         data = JSON.parse(data);
         if (data.type === 'registered') {
           socket.emit('registered', data);
-          emitter.emit('registered');
+          clientEmitter.emit('registered');
         } else if (data.type === 'response') {
           socket.emit(data.id, data);
         }
       });
 
-      emitter.on('command', function(command, payload = {}){
+      clientEmitter.on('command', function(command, payload = {}){
+        let uri;
+        let tempPayload = payload;
+        switch (command){
+          case 'mute':
+            uri = 'ssap://audio/setMute';
+            tempPayload = {mute: true}
+            break;  
+          case 'unmute': 
+            'ssap://audio/setMute';
+            tempPayload = {mute: false}
+            break;
+          case 'volumeUp':
+              uri = 'ssap://audio/volumeUp';
+              break;
+          case 'volumeDown':
+              uri = 'ssap://audio/volumeDown';
+              break;
+          case 'getVolume':
+              uri = 'ssap://audio/getVolume';
+              break;
+          case 'setVolume':
+              uri = 'ssap://audio/setVolume';
+              tempPayload = { volume: 12 };
+              break;
+          case 'play':
+              uri = 'ssap://media.controls/play';
+              break;
+          case 'pause':
+              uri = 'ssap://media.controls/pause';
+              break;
+          case 'fastForward':
+              uri = 'ssap://media.controls/fastForward';
+              break;
+          case 'rewind':
+              uri = 'ssap://media.controls/rewind';
+          case 'netflix':
+              uri = 'ssap://system.launcher/launch'; 
+              tempPayload = { id: 'netflix' };
+              break;
+          case 'hulu':
+              uri = 'ssap://system.launcher/launch'; 
+              tempPayload = { id: 'hulu' };
+              break;
+          case 'disney':
+              uri = 'ssap://system.launcher/launch';
+              tempPayload = { id: 'disney' };
+              break;
+          case 'enter':
+              uri = 'ssap://com.webos.service.ime/sendEnterKey';
+              break;
+          case 'delete':
+              uri = 'ssap://com.webos.service.ime/deleteCharacters';
+          case 'turnOff':
+              uri = 'ssap://system/turnOff';
+              //socket.close();
+            /*
+              select: function () {
+              specialRequest('ENTER');
+            },
+            up: function () {
+              specialRequest('UP');
+            },
+            down: function () {
+              specialRequest('DOWN');
+            },
+            left: function () {
+              specialRequest('LEFT');
+            },
+            right: function () {
+              specialRequest('RIGHT');
+            },
+            back: function () {
+              specialRequest('BACK');
+            },
+            home: function () {
+              specialRequest('HOME');
+            },
+            */
+        }
+        
+        
         const commandJSON = JSON.stringify({
           id: getCid(),
           type: 'request',
-          uri: command,
+          uri: uri,
           payload: payload
         })
         socket.on(commandJSON.id, function (data){
@@ -80,31 +161,9 @@ module.exports = function makeLGTV(WebSocket, emitter) {
     })
     .catch((error) => {
       console.error('WebSocket connection error:', error.message);
-      emitter.emit('noconnect')
+      clientEmitter.emit('noconnect')
     });
 
-  function send(type, uri, payload = {}, command = '') {
-    const json = {
-      id: getCid(),
-      type: type,
-      uri: uri,
-      payload: payload
-    }
-    socket.on(json.id, function (data) {
-      if (data.payload.socketPath) {
-        const specialSocket = new WebSocket(data.payload.socketPath);
-        specialSocket.on('open', function () {
-          specialSocket.send(`type:button\nname:${command}\n\n`)
-          specialSocket.close();
-        })
-      }
-    })
-    try {
-      socket.send(JSON.stringify(json));
-    } catch (e) {
-      throw e
-    }
-  }
 
   function request(uri, payload = {}) {
     send('request', uri, payload);

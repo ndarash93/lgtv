@@ -9,7 +9,7 @@ module.exports = function makeServer(WebSocket, clientEmitter) {
       messageData = JSON.parse(message)
       console.log(`Received: ${messageData.body.command}`);
       ws.send(`Echo: ${message}`);
-      clientEmitter.emit('message', {data: messageData.body.command})
+      clientEmitter.emit('command', {data: messageData.body.command})
     });
 
     ws.on('close', () => {
