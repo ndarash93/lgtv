@@ -3,13 +3,17 @@ module.exports = function makeServer(WebSocket, clientEmitter) {
   console.log('Test')
   server.on('connection', (ws) => {
     console.log('Client connected');
-    clientEmitter.emit('connect');
+    //clientEmitter.emit('connect');
 
     ws.on('message', (message) => {
       messageData = JSON.parse(message)
       console.log(`Received: ${messageData.body.command}`);
       ws.send(`Echo: ${message}`);
-      clientEmitter.emit('command', {data: messageData.body.command})
+      clientEmitter.emit('client->lg', {
+        type: 'command', 
+        command: messageData.body.command, 
+        payload: messageData.body.payload
+      })
     });
 
     ws.on('close', () => {
