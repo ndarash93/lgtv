@@ -8,14 +8,16 @@ ws.onopen = (() => {
 });
 
 ws.onmessage = ((message) => {
-    console.log(`Received from server: ${message}`);
+    console.log(`Received from server: ${message.data}`);
 });
 
 ws.onclose = (() => {
     console.log('Disconnected from WebSocket server');
 });
 
-
+ws.addEventListener('noconnect', function(){
+    console.log('noconnect');
+})
 
 
 const buttons = document.querySelectorAll("button");
@@ -23,7 +25,10 @@ buttons.forEach(button => {
     button.addEventListener('click', function (event) {
         try {
             ws.send(JSON.stringify({
-                body: { command: event.target.value }
+                body: { 
+                    command: event.target.value,
+                    payload: event.target.payload
+                }
             }))
         } catch (error) {
             console.log(error)

@@ -1,4 +1,4 @@
-module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
+module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
   let pairing = require('./pairing.json');
   pairing['client-key'] = process.env.CLIENTKEY;
@@ -10,7 +10,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
   }
 
-  const connectionTimeout = 1000; // 5 seconds, for example
+  const connectionTimeout = 3000; // 5 seconds, for example
 
   // Create a Promise-based function to establish the WebSocket connection with a timeout
   function connectWithTimeout(timeout) {
@@ -24,6 +24,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
       })
 
       socket.on('open', () => {
+        console.log('TV Open')
         clearTimeout(connectionTimer); // Connection succeeded, so clear the timeout
         resolve(socket); // Resolve the Promise with the WebSocket instance
       });
@@ -36,6 +37,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
 
       const connectionTimer = setTimeout(() => {
         socket.close(); // Close the WebSocket connection on timeout
+        lgtvEmitter.emit('noconnect')
         reject(new Error('WebSocket connection timed out'));
       }, timeout);
     });
@@ -61,12 +63,13 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
       socket.on('message', function (data) {
         dataString = data.toString('utf-8');
         dataJSON = JSON.parse(dataString);
-        console.log(dataJSON)
+        //console.log(dataJSON)
         if (dataJSON.type === 'registered') {
           socket.emit('registered', dataJSON);
           lgtvEmitter.emit('registered');
         } else if (dataJSON.type === 'response') {
           socket.emit(dataJSON.id, dataJSON);
+          console.log(dataJSON)
         }
       });
 
@@ -126,9 +129,8 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
             break;
           case 'delete':
             uri = 'ssap://com.webos.service.ime/deleteCharacters';
-          case 'turnOff':
+          case 'power':
             uri = 'ssap://system/turnOff';
-            socket.close();
             break;
           case 'select':
             uri = specialURI;
@@ -158,28 +160,33 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
             uri = specialURI;
             specialCommand = 'HOME';
         }
-        const commandJSON = JSON.stringify({
+        const commandJSON = {
           id: getCid(),
           type: 'request',
           uri: uri,
           payload: tempPayload
-        })
+        }
+        console.log(`CommandJSON: ${commandJSON.id}`)
         socket.once(commandJSON.id, function (data) {
-          console.log(commandJSON.id)
+          console.log(`data: ${data}`)
           if (data.payload.socketPath) {
+            console.log(`Special Request: ${data.payload.socketPath}`)
             const specialSocket = new WebSocket(data.payload.socketPath);
             specialSocket.on('open', function () {
+              console.log('Special Response')
               specialSocket.send(`type:button\nname:${specialCommand}\n\n`)
               specialSocket.close();
             })
           }
         })
-        console.log(commandJSON)
-        //socket.send(commandJSON);
+        //console.log(commandJSON)
+        socket.send(JSON.stringify(commandJSON));
       })
     })
     .catch((error) => {
       console.error('WebSocket connection error:', error.message);
       //clientEmitter.emit('noconnect')
-    });
+    }).finally(_ => {
+
+    })
 }
