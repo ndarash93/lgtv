@@ -40,7 +40,7 @@ clientEmitter.on('message', (message) => {
   console.log(message);
 })
 
-clientEmitter.on('close', _ => {
+clientEmitter.on('close', function() {
   console.log('Client closed')
 })
 clientEmitter.on('client->lg', function(message){
@@ -49,11 +49,16 @@ clientEmitter.on('client->lg', function(message){
       if(!status.isOn){
         magic(udp)
         status.isOn = true;
+        setTimeout(function(){
+          const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
+        },1000);
       }else if(!status.isOpen){
         const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
+      }else if(!status.isRegistered){
+        lgtvEmitter.emit('register');
       }
     }
-    console.log(`ClientEmmitter Message: ${message}`);
+    //console.log(`ClientEmmitter Message: ${message}`);
     lgtvEmitter.emit('command', {command: message.command, payload: message.payload})
   }
 })
@@ -63,6 +68,7 @@ lgtvEmitter.on('open', function () {
 })
 
 lgtvEmitter.on('close', function () {
+  console.log('LGTV Emitter close')
   status.isOpen = false;
   status.isRegistered = false;
 })
@@ -70,14 +76,19 @@ lgtvEmitter.on('close', function () {
 lgtvEmitter.on('registered', function () {
   console.log('Registered')
   status.isRegistered = true;
+  clientEmitter.emit('status')
 })
 
 lgtvEmitter.on('noconnect', function () {
-  console.log('Registered')
+  console.log('noconnect')
   status.isOn = false;
   status.isOpen = false;
   status.isRegistered = false;
-  clientEmitter.emit('noconnect');
+})
+
+lgtvEmitter.on('lg->client', function(response){
+  //console.log('Response', response.response);
+  clientEmitter.emit('response', {response: response.response});
 })
 
 app.get('/', (req, res) => {

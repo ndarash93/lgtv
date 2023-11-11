@@ -10,9 +10,6 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
   }
 
-  const connectionTimeout = 3000; // 5 seconds, for example
-
-  // Create a Promise-based function to establish the WebSocket connection with a timeout
   function connectWithTimeout(timeout) {
     return new Promise((resolve, reject) => {
       const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`);
@@ -24,30 +21,41 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
       })
 
       socket.on('open', () => {
+        cidCount = 0;
         console.log('TV Open')
-        clearTimeout(connectionTimer); // Connection succeeded, so clear the timeout
-        resolve(socket); // Resolve the Promise with the WebSocket instance
+        lgtvEmitter.emit('open');
+        clearTimeout(connectionTimer);
+        resolve(socket);
       });
 
       socket.on('error', (error) => {
-        clearTimeout(connectionTimer); // Clear the timeout on error
-        socket.close(); // Close the WebSocket connection
-        reject(error); // Reject the Promise with the error
+        clearTimeout(connectionTimer);
+        socket.close();
+        reject(error);
       });
 
       const connectionTimer = setTimeout(() => {
-        socket.close(); // Close the WebSocket connection on timeout
+        socket.close();
         lgtvEmitter.emit('noconnect')
         reject(new Error('WebSocket connection timed out'));
       }, timeout);
     });
   }
 
-  connectWithTimeout(connectionTimeout)
+  connectWithTimeout(3000)
     .then((socket) => {
       console.log('Connected to WebSocket');
-      // You can now use the WebSocket instance for communication
-      //isOpen = true;
+      lgtvEmitter.on('register', function () {
+        cidCount = 0;
+        socket.send(JSON.stringify({
+          id: getCid(),
+          type: 'register',
+          uri: undefined,
+          payload: pairing
+        })
+        )
+      })
+
       socket.send(JSON.stringify({
         id: getCid(),
         type: 'register',
@@ -55,21 +63,15 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
         payload: pairing
       })
       )
-      //'register', undefined, pairing);
-      lgtvEmitter.emit('open');
-
-
-
       socket.on('message', function (data) {
         dataString = data.toString('utf-8');
         dataJSON = JSON.parse(dataString);
-        //console.log(dataJSON)
         if (dataJSON.type === 'registered') {
           socket.emit('registered', dataJSON);
           lgtvEmitter.emit('registered');
         } else if (dataJSON.type === 'response') {
           socket.emit(dataJSON.id, dataJSON);
-          console.log(dataJSON)
+          //console.log(dataJSON)
         }
       });
 
@@ -78,7 +80,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
         let tempPayload = payload;
         const specialURI = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
         let specialCommand;
-        console.log('LGTV: ' + command)
+        //console.log('LGTV: ' + command)
         switch (command) {
           case 'mute':
             uri = 'ssap://audio/setMute';
@@ -166,26 +168,33 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
           uri: uri,
           payload: tempPayload
         }
-        console.log(`CommandJSON: ${commandJSON.id}`)
+        const commandTimeout = setTimeout(function () {
+          status.isOn = false;
+          status.isOpen = false;
+          status.isRegistered = false;
+          socket.close()
+          console.log('Error produced by', commandJSON);
+        }, 3000);
+        //console.log(`CommandJSON: ${commandJSON.id}`)
         socket.once(commandJSON.id, function (data) {
-          console.log(`data: ${data}`)
+          clearTimeout(commandTimeout)
+          //console.log(`data: ${data}, command: ${command}`)
+          lgtvEmitter.emit('lg->client', { response: command });
           if (data.payload.socketPath) {
-            console.log(`Special Request: ${data.payload.socketPath}`)
+            //console.log(`Special Request: ${data.payload.socketPath}`)
             const specialSocket = new WebSocket(data.payload.socketPath);
             specialSocket.on('open', function () {
-              console.log('Special Response')
+              //console.log('Special Response')
               specialSocket.send(`type:button\nname:${specialCommand}\n\n`)
               specialSocket.close();
             })
           }
         })
-        //console.log(commandJSON)
         socket.send(JSON.stringify(commandJSON));
       })
     })
     .catch((error) => {
       console.error('WebSocket connection error:', error.message);
-      //clientEmitter.emit('noconnect')
     }).finally(_ => {
 
     })
