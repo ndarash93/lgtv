@@ -1,10 +1,8 @@
-module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
+module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
   const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
   let pairing = require('./pairing.json');
   pairing['client-key'] = process.env.CLIENTKEY;
   let cidCount = 0;
-  let isRegistered = false;
-  let isOpen = false;
 
   function getCid() {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
@@ -36,7 +34,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
 
       const connectionTimer = setTimeout(() => {
         socket.close();
-        lgtvEmitter.emit('noconnect')
+        lgtvEmitter.emit('timeout')
         reject(new Error('WebSocket connection timed out'));
       }, timeout);
     });
@@ -71,7 +69,6 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
           lgtvEmitter.emit('registered');
         } else if (dataJSON.type === 'response') {
           socket.emit(dataJSON.id, dataJSON);
-          //console.log(dataJSON)
         }
       });
 
@@ -169,16 +166,18 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter, turnOn, status) {
           payload: tempPayload
         }
         const commandTimeout = setTimeout(function () {
-          status.isOn = false;
-          status.isOpen = false;
-          status.isRegistered = false;
+          lgtvEmitter.emit('timeout', commandJSON)
           socket.close()
           console.log('Error produced by', commandJSON);
         }, 3000);
         //console.log(`CommandJSON: ${commandJSON.id}`)
         socket.once(commandJSON.id, function (data) {
           clearTimeout(commandTimeout)
-          //console.log(`data: ${data}, command: ${command}`)
+          console.log(`data: ${JSON.stringify(data)}, command: ${command}`)
+          if (command === 'power') {
+            socket.close();
+            console.log("Turned Off");
+          }
           lgtvEmitter.emit('lg->client', { response: command });
           if (data.payload.socketPath) {
             //console.log(`Special Request: ${data.payload.socketPath}`)

@@ -7,6 +7,7 @@ const magic = require('./util/magic');
 const makeLGTV = require('./util/lgtv', magic);
 const makeServer = require('./util/server')
 const EventEmitter = require('events');
+const { stat } = require('fs');
 const exec = require('child_process').exec
 
 
@@ -69,8 +70,9 @@ lgtvEmitter.on('open', function () {
 
 lgtvEmitter.on('close', function () {
   console.log('LGTV Emitter close')
-  status.isOpen = false;
   status.isRegistered = false;
+  status.isOpen = false;
+  status.isOn = false;
 })
 
 lgtvEmitter.on('registered', function () {
@@ -79,15 +81,14 @@ lgtvEmitter.on('registered', function () {
   clientEmitter.emit('status')
 })
 
-lgtvEmitter.on('noconnect', function () {
-  console.log('noconnect')
+lgtvEmitter.on('timeout', function(command){
   status.isOn = false;
   status.isOpen = false;
   status.isRegistered = false;
 })
 
 lgtvEmitter.on('lg->client', function(response){
-  //console.log('Response', response.response);
+  console.log('Response', response.response);
   clientEmitter.emit('response', {response: response.response});
 })
 
