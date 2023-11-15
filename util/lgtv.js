@@ -43,6 +43,14 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
   connectWithTimeout(3000)
     .then((socket) => {
       console.log('Connected to WebSocket');
+      socket.send(JSON.stringify({
+        id: getCid(),
+        type: 'register',
+        uri: undefined,
+        payload: pairing
+      })
+      )
+
       lgtvEmitter.on('register', function () {
         cidCount = 0;
         socket.send(JSON.stringify({
@@ -53,14 +61,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
         })
         )
       })
-
-      socket.send(JSON.stringify({
-        id: getCid(),
-        type: 'register',
-        uri: undefined,
-        payload: pairing
-      })
-      )
+      
       socket.on('message', function (data) {
         dataString = data.toString('utf-8');
         dataJSON = JSON.parse(dataString);
@@ -77,7 +78,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
         let tempPayload = payload;
         const specialURI = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
         let specialCommand;
-        //console.log('LGTV: ' + command)
+        console.log('LGTV: ' + command)
         switch (command) {
           case 'mute':
             uri = 'ssap://audio/setMute';
@@ -97,6 +98,10 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
             uri = 'ssap://audio/getVolume';
             break;
           case 'setVolume':
+            uri = 'ssap://audio/setVolume';
+            tempPayload = { volume: 12 };
+            break;
+          case 'getVolume':
             uri = 'ssap://audio/setVolume';
             tempPayload = { volume: 12 };
             break;

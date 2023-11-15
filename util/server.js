@@ -1,11 +1,11 @@
-module.exports = function makeServer(WebSocket, clientEmitter, status) {
+module.exports = function makeServer(WebSocket, clientEmitter) {
   const server = new WebSocket.Server({ port: 8080 });
   server.on('connection', (ws) => {
     console.log('Client connected');
 
     ws.on('message', (message) => {
       messageData = JSON.parse(message)
-      clientEmitter.emit('status');
+      //clientEmitter.emit('status');
       clientEmitter.emit('client->lg', {
         type: 'command',
         command: messageData.body.command,
@@ -20,7 +20,7 @@ module.exports = function makeServer(WebSocket, clientEmitter, status) {
       }))
     })
 
-    clientEmitter.on('status', function () {
+    clientEmitter.on('status', function (status) {
       ws.send(JSON.stringify({
         type: 'status',
         status: status

@@ -8,6 +8,7 @@ const makeLGTV = require('./util/lgtv', magic);
 const makeServer = require('./util/server')
 const EventEmitter = require('events');
 const { stat } = require('fs');
+const { emit } = require('process');
 const exec = require('child_process').exec
 
 
@@ -22,7 +23,7 @@ const status = {
   isRegistered: false
 };
 //const router = require('router')(express.Router(), lgtv, magic);
-const Server = makeServer(WebSocket, clientEmitter, status)
+const Server = makeServer(WebSocket, clientEmitter)
 //const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
 
 
@@ -39,6 +40,7 @@ clientEmitter.on('connect', () => {
 
 clientEmitter.on('message', (message) => {
   console.log(message);
+  clientEmitter.emit('status', status)
 })
 
 clientEmitter.on('close', function() {
@@ -51,21 +53,23 @@ clientEmitter.on('client->lg', function(message){
         magic(udp)
         status.isOn = true;
         setTimeout(function(){
-          const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
-        },1000);
+          const lgtv = makeLGTV(WebSocket, lgtvEmitter)
+        },3000);
       }else if(!status.isOpen){
-        const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
+        const lgtv = makeLGTV(WebSocket, lgtvEmitter)
       }else if(!status.isRegistered){
         lgtvEmitter.emit('register');
       }
     }
     //console.log(`ClientEmmitter Message: ${message}`);
+    clientEmitter.emit('status', status);
     lgtvEmitter.emit('command', {command: message.command, payload: message.payload})
   }
 })
 
 lgtvEmitter.on('open', function () {
   status.isOpen = true;
+  clientEmitter.emit('status', status)
 })
 
 lgtvEmitter.on('close', function () {
@@ -73,23 +77,23 @@ lgtvEmitter.on('close', function () {
   status.isRegistered = false;
   status.isOpen = false;
   status.isOn = false;
+  clientEmitter.emit('status', status)
 })
 
 lgtvEmitter.on('registered', function () {
   console.log('Registered')
-  status.isRegistered = true;
-  clientEmitter.emit('status')
+  updateStatus(isRegistered=true)
+  //clientEmitter.emit('status', status)
 })
 
-lgtvEmitter.on('timeout', function(command){
-  status.isOn = false;
-  status.isOpen = false;
-  status.isRegistered = false;
+lgtvEmitter.on('timeout', function(){
+  updateStatus(false, false, false)
 })
 
 lgtvEmitter.on('lg->client', function(response){
   console.log('Response', response.response);
   clientEmitter.emit('response', {response: response.response});
+  //clientEmitter.emit('status', status);
 })
 
 app.get('/', (req, res) => {
@@ -98,7 +102,16 @@ app.get('/', (req, res) => {
 });
 
 
-
+function updateStatus({isOn, isOpen, isRegistered}){
+  if(isOn !== undefined){
+    status.isOn = isOn
+  }if(isOpen !== undefined){
+    status.isOpen = isOpen
+  }if(isRegistered !== undefined){
+    status.isRegistered = isRegistered
+  }
+  clientEmitter.emit('status', status)
+}
 
 //app.listen(process.env.PORT, _ => {});
 app.listen(9000, _ => { });
