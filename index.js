@@ -82,12 +82,15 @@ lgtvEmitter.on('close', function () {
 
 lgtvEmitter.on('registered', function () {
   console.log('Registered')
-  updateStatus(isRegistered=true)
-  //clientEmitter.emit('status', status)
+  status.isRegistered = true;
+  clientEmitter.emit('status', status)
 })
 
 lgtvEmitter.on('timeout', function(){
-  updateStatus(false, false, false)
+  status.isOn = false;
+  status.isOpen = false;
+  status.isRegistered = false;
+  clientEmitter.emit('status', status)
 })
 
 lgtvEmitter.on('lg->client', function(response){
@@ -102,16 +105,7 @@ app.get('/', (req, res) => {
 });
 
 
-function updateStatus({isOn, isOpen, isRegistered}){
-  if(isOn !== undefined){
-    status.isOn = isOn
-  }if(isOpen !== undefined){
-    status.isOpen = isOpen
-  }if(isRegistered !== undefined){
-    status.isRegistered = isRegistered
-  }
-  clientEmitter.emit('status', status)
-}
+
 
 //app.listen(process.env.PORT, _ => {});
 app.listen(9000, _ => { });
