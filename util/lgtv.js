@@ -1,9 +1,9 @@
 module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
-  const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
+
   let pairing = require('./pairing.json');
   pairing['client-key'] = process.env.CLIENTKEY;
+  const cidPrefix = ('0000000' + (Math.floor(Math.random() * 0xFFFFFFFF).toString(16))).slice(-8);
   let cidCount = 0;
-
   function getCid() {
     return cidPrefix + ('000' + (cidCount++).toString(16)).slice(-4);
   }
@@ -11,14 +11,14 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
   function connectWithTimeout(timeout) {
     return new Promise((resolve, reject) => {
       const socket = new WebSocket(`ws://${process.env.TV_URL}:${process.env.TV_PORT}`);
-
+           
       socket.on('close', function () {
-        cidCount = 0;
+        //cidCount = 0;
         lgtvEmitter.emit('close');
         console.log('Socket Closed')
       })
 
-      socket.on('open', () => {
+      socket.on('open', function() {
         cidCount = 0;
         console.log('TV Open')
         lgtvEmitter.emit('open');
@@ -26,13 +26,13 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
         resolve(socket);
       });
 
-      socket.on('error', (error) => {
+      socket.on('error', function(error) {
         clearTimeout(connectionTimer);
         socket.close();
         reject(error);
       });
 
-      const connectionTimer = setTimeout(() => {
+      const connectionTimer = setTimeout(function() {
         socket.close();
         lgtvEmitter.emit('timeout')
         reject(new Error('WebSocket connection timed out'));
@@ -41,7 +41,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
   }
 
   connectWithTimeout(3000)
-    .then((socket) => {
+    .then(function(socket) {
       console.log('Connected to WebSocket');
       socket.send(JSON.stringify({
         id: getCid(),
@@ -70,6 +70,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
           lgtvEmitter.emit('registered');
         } else if (dataJSON.type === 'response') {
           socket.emit(dataJSON.id, dataJSON);
+          console.log(dataJSON.id)
         }
       });
 
@@ -174,8 +175,8 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
           lgtvEmitter.emit('timeout', commandJSON)
           socket.close()
           console.log('Error produced by', commandJSON);
-        }, 3000);
-        //console.log(`CommandJSON: ${commandJSON.id}`)
+        }, 1000);
+        console.log(`CommandJSON: ${commandJSON.id}`)
         socket.once(commandJSON.id, function (data) {
           clearTimeout(commandTimeout)
           console.log(`data: ${JSON.stringify(data)}, command: ${command}`)

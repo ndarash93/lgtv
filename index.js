@@ -9,6 +9,7 @@ const makeServer = require('./util/server')
 const EventEmitter = require('events');
 const { stat } = require('fs');
 const { emit } = require('process');
+const lgtv = require('./util/lgtv');
 const exec = require('child_process').exec
 
 
@@ -52,9 +53,9 @@ clientEmitter.on('client->lg', function(message){
       if(!status.isOn){
         magic(udp)
         status.isOn = true;
-        setTimeout(function(){
+        /*setTimeout(function(){
           const lgtv = makeLGTV(WebSocket, lgtvEmitter)
-        },3000);
+        },3000);*/
       }else if(!status.isOpen){
         const lgtv = makeLGTV(WebSocket, lgtvEmitter)
       }else if(!status.isRegistered){
@@ -68,6 +69,7 @@ clientEmitter.on('client->lg', function(message){
 })
 
 lgtvEmitter.on('open', function () {
+  status.isOn = true;
   status.isOpen = true;
   clientEmitter.emit('status', status)
 })
@@ -78,10 +80,13 @@ lgtvEmitter.on('close', function () {
   status.isOpen = false;
   status.isOn = false;
   clientEmitter.emit('status', status)
+  delete lgtv;
 })
 
 lgtvEmitter.on('registered', function () {
   console.log('Registered')
+  status.isOn = true;
+  status.isOpen = true;
   status.isRegistered = true;
   clientEmitter.emit('status', status)
 })
