@@ -11,7 +11,7 @@ function connectWebSocket(){
 
 
     ws.onopen = (() => {
-        console.log('Connected to WebSocket server');
+        //console.log('Connected to WebSocket server');
         //ws.send(JSON.stringify({ body: 'Hello, server!' }));
         //ws.send('Hello World!')
     });
@@ -20,7 +20,7 @@ function connectWebSocket(){
         //console.log(`Received from server: ${message.data}`);
         data = JSON.parse(message.data)
         if (data.type === 'status') {
-            console.log(data.status)
+            //console.log(data.status)
             if (data.status.isRegistered) {
                 powerButton.style.border = "2px solid green"
             } else if (data.status.isOpen) {
@@ -42,7 +42,7 @@ function connectWebSocket(){
     });
 
     ws.onclose = (() => {
-        console.log('Disconnected from WebSocket server');
+        //console.log('Disconnected from WebSocket server');
         retryTimeout = setTimeout(connectWebSocket, 2000);
     });
 }

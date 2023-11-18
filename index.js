@@ -36,16 +36,16 @@ app.use(express.json());
 
 
 clientEmitter.on('connect', () => {
-  console.log('Client Connected')
+  //console.log('Client Connected')
 })
 
 clientEmitter.on('message', (message) => {
-  console.log(message);
+  //console.log(message);
   clientEmitter.emit('status', status)
 })
 
 clientEmitter.on('close', function() {
-  console.log('Client closed')
+  //console.log('Client closed')
 })
 clientEmitter.on('client->lg', function(message){
   if(message.type === 'command'){
@@ -75,7 +75,7 @@ lgtvEmitter.on('open', function () {
 })
 
 lgtvEmitter.on('close', function () {
-  console.log('LGTV Emitter close')
+  //console.log('LGTV Emitter close')
   status.isRegistered = false;
   status.isOpen = false;
   status.isOn = false;
@@ -84,14 +84,14 @@ lgtvEmitter.on('close', function () {
 })
 
 lgtvEmitter.on('registered', function () {
-  console.log('Registered')
+  //console.log('Registered')
   status.isRegistered = true;
   clientEmitter.emit('status', status)
 })
 
 
 lgtvEmitter.on('lg->client', function(response){
-  console.log('Response', response.response);
+  //console.log('Response', response.response);
   clientEmitter.emit('response', {response: response.response});
 })
 

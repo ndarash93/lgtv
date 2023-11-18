@@ -13,14 +13,14 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
 
   socket.on('close', function () {
     lgtvEmitter.emit('close');
-    console.log('LGTV Socket Closed')
+    //console.log('LGTV Socket Closed')
     lgtvEmitter.removeListener('command', commandHandler)
     lgtvEmitter.removeListener('register', registerHandler);
   })
 
   socket.on('open', function () {
     cidCount = 0;
-    console.log('TV Open')
+    //console.log('TV Open')
     lgtvEmitter.emit('open');
     clearTimeout(connectionTimer);
   });
@@ -36,7 +36,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
       lgtvEmitter.emit('registered');
     } else if (dataJSON.type === 'response') {
       lgtvEmitter.emit(dataJSON.id, dataJSON);
-      console.log(dataJSON.id)
+      //console.log(dataJSON.id)
     }
   });
 
@@ -45,7 +45,7 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
     let tempPayload = payload;
     const specialURI = 'ssap://com.webos.service.networkinput/getPointerInputSocket';
     let specialCommand;
-    console.log('LGTV: ' + command)
+    //console.log('LGTV: ' + command)
     switch (command) {
       case 'mute':
         uri = 'ssap://audio/setMute';
@@ -140,12 +140,12 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
     const commandTimeout = setTimeout(function () {
       //lgtvEmitter.emit('close', commandJSON)
       socket.close()
-      console.log('Error produced by', commandJSON);
+      //console.log('Error produced by', commandJSON);
     }, 1000);
-    console.log(`CommandJSON: ${commandJSON.id}`)
+    //console.log(`CommandJSON: ${commandJSON.id}`)
     lgtvEmitter.once(commandJSON.id, function (data) {
       clearTimeout(commandTimeout)
-      console.log(`data: ${JSON.stringify(data)}, command: ${command}`)
+      //console.log(`data: ${JSON.stringify(data)}, command: ${command}`)
       lgtvEmitter.emit('lg->client', { response: command });
       if(command === 'power'){
         socket.close();
