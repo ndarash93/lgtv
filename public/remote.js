@@ -7,7 +7,7 @@ const muteButton = document.getElementById('mute');
 let ws;
 
 function connectWebSocket(){
-    ws = new WebSocket('ws://192.168.0.11:8080')
+    ws = new WebSocket('ws://192.168.0.11:8001')
 
 
     ws.onopen = (() => {

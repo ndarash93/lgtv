@@ -1,5 +1,5 @@
 module.exports = function makeServer(WebSocket, clientEmitter) {
-  const server = new WebSocket.Server({ port: 8080 });
+  const server = new WebSocket.Server({ port: 8001 });
   server.on('connection', (ws) => {
     console.log('Client connected');
 
