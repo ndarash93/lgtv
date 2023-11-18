@@ -3,9 +3,8 @@ module.exports = function makeServer(WebSocket, clientEmitter) {
   server.on('connection', (ws) => {
     console.log('Client connected');
 
-    ws.on('message', (message) => {
+    ws.on('message', function(message){
       messageData = JSON.parse(message)
-      //clientEmitter.emit('status');
       clientEmitter.emit('client->lg', {
         type: 'command',
         command: messageData.body.command,
@@ -13,23 +12,26 @@ module.exports = function makeServer(WebSocket, clientEmitter) {
       })
     });
 
-    clientEmitter.on('response', function (response) {
+    function responseHandler(response) {
       ws.send(JSON.stringify({
         type: 'response',
         response: response.response
       }))
-    })
+    }
 
-    clientEmitter.on('status', function (status) {
+    function statusHandler(status) {
       ws.send(JSON.stringify({
         type: 'status',
         status: status
-      }));
-    })
+      }))
+    }
 
-    ws.on('close', () => {
+    clientEmitter.on('response', responseHandler);
+    clientEmitter.on('status', statusHandler);
+    ws.on('close', function(){
       clientEmitter.emit('close')  // TODO add client identifiers
+      clientEmitter.removeListener('response', responseHandler);
+      clientEmitter.removeListener('status', statusHandler);
     });
-  });
-
+  })
 }
