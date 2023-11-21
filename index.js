@@ -7,11 +7,8 @@ const magic = require('./util/magic');
 const makeLGTV = require('./util/lgtv', magic);
 const makeServer = require('./util/server')
 const EventEmitter = require('events');
-const { stat } = require('fs');
-const { emit } = require('process');
 const lgtv = require('./util/lgtv');
-const exec = require('child_process').exec
-
+const logger = require('./util/logger')();
 
 
 
@@ -23,9 +20,8 @@ const status = {
   isOpen: false,
   isRegistered: false
 };
-//const router = require('router')(express.Router(), lgtv, magic);
+
 const Server = makeServer(WebSocket, clientEmitter)
-//const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
 
 
 app.set('view-engine', 'ejs');
@@ -36,11 +32,13 @@ app.use(express.json());
 
 
 clientEmitter.on('connect', () => {
-  //console.log('Client Connected')
+  console.log('Client Connected')
+  logger.note('client connected')
 })
 
 clientEmitter.on('message', (message) => {
   //console.log(message);
+  logger.note('client connected')
   clientEmitter.emit('status', status)
 })
 
@@ -51,10 +49,10 @@ clientEmitter.on('client->lg', function(message){
   if(message.type === 'command'){
     if(message.command === 'power'){
       if(!status.isOn){
-        magic(udp)
+        //magic(udp)
         status.isOn = true;
       }else if(!status.isOpen){
-        const lgtv = makeLGTV(WebSocket, lgtvEmitter)
+        //const lgtv = makeLGTV(WebSocket, lgtvEmitter)
       }else if(!status.isRegistered){
         lgtvEmitter.emit('register');
       }else{
@@ -65,7 +63,7 @@ clientEmitter.on('client->lg', function(message){
     }
     //console.log(`ClientEmmitter Message: ${message}`);
     clientEmitter.emit('status', status);
-    
+    logger.note(JSON.stringify({message: message, status: status}));
   }
 })
 
@@ -75,7 +73,7 @@ lgtvEmitter.on('open', function () {
 })
 
 lgtvEmitter.on('close', function () {
-  //console.log('LGTV Emitter close')
+  logger.note('LGTV Disconnected');
   status.isRegistered = false;
   status.isOpen = false;
   status.isOn = false;
@@ -84,7 +82,7 @@ lgtvEmitter.on('close', function () {
 })
 
 lgtvEmitter.on('registered', function () {
-  //console.log('Registered')
+  logger.note('Registered')
   status.isRegistered = true;
   clientEmitter.emit('status', status)
 })
@@ -96,12 +94,16 @@ lgtvEmitter.on('lg->client', function(response){
 })
 
 app.get('/', (req, res) => {
-  res.render('remote.ejs', {
-  });
+  const server = process.env.DEBUG
+  ? `ws://${process.env.SERVER}:8002`
+  : `ws://${process.env.SERVER}:${process.env.WS_PORT}`;
+  res.render('remote.ejs', { server });
 });
 
 
+process.on('uncaughtException', function(err){
+  logger.error(err)
+  process.exit(1);
+})
 
-
-app.listen(process.env.PORT, _ => {});
-//app.listen(9000, _ => { });
+app.listen(process.env.DEBUG ? 9000 : process.env.PORT, _ => {});

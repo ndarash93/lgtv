@@ -6,8 +6,10 @@ const powerButton = document.getElementById('power');
 const muteButton = document.getElementById('mute');
 let ws;
 
+
+
 function connectWebSocket(){
-    ws = new WebSocket('ws://192.168.0.11:8001')
+    ws = new WebSocket(server)
 
 
     ws.onopen = (() => {
