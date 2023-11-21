@@ -44,6 +44,7 @@ clientEmitter.on('message', (message) => {
 
 clientEmitter.on('close', function() {
   //console.log('Client closed')
+  logger.note(JSON.stringify({message: 'Client Closed'}))
 })
 clientEmitter.on('client->lg', function(message){
   if(message.type === 'command'){
