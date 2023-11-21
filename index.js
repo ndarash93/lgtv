@@ -20,9 +20,8 @@ const status = {
   isOpen: false,
   isRegistered: false
 };
-//const router = require('router')(express.Router(), lgtv, magic);
+
 const Server = makeServer(WebSocket, clientEmitter)
-//const lgtv = makeLGTV(WebSocket, lgtvEmitter, magic, status)
 
 
 app.set('view-engine', 'ejs');
@@ -102,6 +101,9 @@ app.get('/', (req, res) => {
 });
 
 
-
+process.on('uncaughtException', function(err){
+  logger.error(err)
+  process.exit(1);
+})
 
 app.listen(process.env.DEBUG ? 9000 : process.env.PORT, _ => {});
