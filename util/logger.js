@@ -30,5 +30,4 @@ module.exports = function makeLogger(logPath='./logs/lgtv.log'){
       fs.appendFile(logPath, logEntry, function(error){});
     }
   }
-
 }

@@ -10,7 +10,7 @@ const EventEmitter = require('events');
 const lgtv = require('./util/lgtv');
 const logger = require('./util/logger')();
 
-
+const DEBUG = false;
 
 const lgtvEmitter = new EventEmitter();
 const clientEmitter = new EventEmitter();
@@ -32,7 +32,7 @@ app.use(express.json());
 
 
 clientEmitter.on('connect', () => {
-  console.log('Client Connected')
+  //console.log('Client Connected')
   logger.note('client connected')
 })
 
@@ -49,10 +49,10 @@ clientEmitter.on('client->lg', function(message){
   if(message.type === 'command'){
     if(message.command === 'power'){
       if(!status.isOn){
-        //magic(udp)
+        magic(udp)
         status.isOn = true;
       }else if(!status.isOpen){
-        //const lgtv = makeLGTV(WebSocket, lgtvEmitter)
+        const lgtv = makeLGTV(WebSocket, lgtvEmitter)
       }else if(!status.isRegistered){
         lgtvEmitter.emit('register');
       }else{
@@ -61,7 +61,6 @@ clientEmitter.on('client->lg', function(message){
     }else{
       lgtvEmitter.emit('command', {command: message.command, payload: message.payload})
     }
-    //console.log(`ClientEmmitter Message: ${message}`);
     clientEmitter.emit('status', status);
     logger.note(JSON.stringify({message: message, status: status}));
   }
@@ -94,7 +93,7 @@ lgtvEmitter.on('lg->client', function(response){
 })
 
 app.get('/', (req, res) => {
-  const server = process.env.DEBUG
+  const server = process.env.DEBUG === 'true'
   ? `ws://${process.env.SERVER}:8002`
   : `ws://${process.env.SERVER}:${process.env.WS_PORT}`;
   res.render('remote.ejs', { server });
@@ -106,4 +105,4 @@ process.on('uncaughtException', function(err){
   process.exit(1);
 })
 
-app.listen(process.env.DEBUG ? 9000 : process.env.PORT, _ => {});
+app.listen(process.env.DEBUG === 'true' ? 9000 : process.env.PORT, _ => {});
