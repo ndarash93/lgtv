@@ -70,6 +70,7 @@ clientEmitter.on('client->lg', function(message){
 lgtvEmitter.on('open', function () {
   status.isOpen = true;
   clientEmitter.emit('status', status)
+  logger.note()
 })
 
 lgtvEmitter.on('close', function () {
@@ -102,7 +103,7 @@ app.get('/', (req, res) => {
 
 
 process.on('uncaughtException', function(err){
-  logger.error(err)
+  logger.error(JSON.stringify(err))
   process.exit(1);
 })
 
