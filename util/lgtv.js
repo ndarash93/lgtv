@@ -181,5 +181,5 @@ module.exports = function makeLGTV(WebSocket, lgtvEmitter) {
     socket.close();
     lgtvEmitter.emit('close')
     throw new Error('WebSocket connection timed out');
-  }, 3000);
+  }, 5000);
 }
