@@ -3,3 +3,4 @@ dev/
 public/fontawesome/
 .env
 logs/
+*.pem
