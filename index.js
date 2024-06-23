@@ -1,5 +1,7 @@
 const WebSocket = require('ws');
 const udp = require('dgram');
+const https = require('https');
+const fs = require('fs');
 require('dotenv').config();
 const express = require('express');
 const app = express();
@@ -12,8 +14,19 @@ const logger = require('./util/logger')();
 
 const DEBUG = false;
 
+const options = {
+  cert: fs.readFileSync('cert.pem'),
+  key: fs.readFileSync('key.pem')
+};
+
 const lgtvEmitter = new EventEmitter();
 const clientEmitter = new EventEmitter();
+
+const server = https.createServer(options)
+makeServer(WebSocket, server, clientEmitter)
+
+
+
 
 const status = {
   isOn: false,
@@ -21,14 +34,11 @@ const status = {
   isRegistered: false
 };
 
-const Server = makeServer(WebSocket, clientEmitter)
-
 
 app.set('view-engine', 'ejs');
 
 app.use(express.static('public'));
 app.use(express.json());
-
 
 
 clientEmitter.on('connect', () => {
@@ -96,8 +106,8 @@ lgtvEmitter.on('lg->client', function(response){
 
 app.get('/', (req, res) => {
   const server = process.env.DEBUG === 'true'
-  ? `ws://${process.env.SERVER}:8002`
-  : `ws://${process.env.SERVER}:${process.env.WS_PORT}`;
+  ? `wss://${process.env.SERVER}:8002`
+  : `wss://${process.env.SERVER}:${process.env.WS_PORT}`;
   res.render('remote.ejs', { server });
 });
 
@@ -108,3 +118,4 @@ process.on('uncaughtException', function(err){
 })
 
 app.listen(process.env.DEBUG === 'true' ? 9000 : process.env.PORT, _ => {});
+server.listen(process.env.WS_PORT, _ => {});

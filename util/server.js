@@ -1,6 +1,7 @@
-module.exports = function makeServer(WebSocket, clientEmitter) {
-  const server = new WebSocket.Server({ port: (process.env.DEBUG === 'true' ? 8002 : process.env.WS_PORT) });
-  server.on('connection', (ws) => {
+module.exports = function makeServer(WebSocket, server, clientEmitter) {
+
+  const wss = new WebSocket.Server({ server });
+  wss.on('connection', (ws) => {
     clientEmitter.emit('connect');
 
     ws.on('message', function(message){
